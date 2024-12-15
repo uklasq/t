@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f4f4;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        form input, form button {
+            margin: 5px;
+            padding: 10px;
+            font-size: 1em;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin: 20px auto;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background: #007bff;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        button {
+            padding: 5px 10px;
+            font-size: 1em;
+            border: none;
+            cursor: pointer;
+        }
+
+        button.delete {
+            background: red;
+            color: white;
+        }
+
+        button.delete:hover {
+            background: darkred;
+        }
+
+        button.clear-all {
+            background: #555;
+            color: white;
+        }
+
+        button.clear-all:hover {
+            background: #333;
+        }
+
+        #adminPanel {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Admin Panel Giriş</h1>
+    <form id="loginForm">
+        <input type="text" id="username" placeholder="Kullanıcı Adı" required>
+        <input type="password" id="password" placeholder="Şifre" required>
+        <button type="submit">Giriş Yap</button>
+    </form>
+
+    <div id="adminPanel">
+        <h1>Admin Panel</h1>
+        <form id="matchForm">
+            <input type="text" id="date" placeholder="Tarih (ör: 08/12/2024)" required>
+            <input type="text" id="homeTeam" placeholder="Ev Sahibi Takım" required>
+            <input type="text" id="awayTeam" placeholder="Deplasman Takımı" required>
+            <input type="text" id="time" placeholder="Saat (ör: 19:00)" required>
+            <button type="submit">Maç Ekle</button>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Tarih</th>
+                    <th>Ev Sahibi</th>
+                    <th>Deplasman</th>
+                    <th>Saat</th>
+                    <th>Sil</th>
+                </tr>
+            </thead>
+            <tbody id="matchTableBody">
+                <!-- Dinamik olarak eklenecek -->
+            </tbody>
+        </table>
+
+        <button class="clear-all" onclick="clearAllMatches()">Tümünü Temizle</button>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('loginForm');
+        const adminPanel = document.getElementById('adminPanel');
+        const form = document.getElementById('matchForm');
+        const tableBody = document.getElementById('matchTableBody');
+
+        const correctUsername = "admin"; // Değiştirilebilir
+        const correctPassword = "bedo12"; // Değiştirilebilir
+
+        let matches = JSON.parse(localStorage.getItem('matches')) || [];
+
+        // Sayfa yüklendiğinde tabloyu güncelle
+        window.onload = () => {
+            updateTable();
+        };
+
+        // Giriş formunu kontrol et
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Kullanıcı adı ve şifreyi kontrol et
+            if (username === correctUsername && password === correctPassword) {
+                // Başarılı giriş
+                loginForm.style.display = 'none';
+                adminPanel.style.display = 'block';
+            } else {
+                alert('Kullanıcı adı veya şifre yanlış!');
+            }
+        });
+
+        // Maç ekleme
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const date = document.getElementById('date').value;
+            const homeTeam = document.getElementById('homeTeam').value;
+            const awayTeam = document.getElementById('awayTeam').value;
+            const time = document.getElementById('time').value;
+
+            const match = { date, homeTeam, awayTeam, time };
+            matches.push(match);
+
+            updateTable();
+            saveMatchesToLocalStorage();
+
+            form.reset();
+        });
+
+        // Tabloyu güncelle
+        function updateTable() {
+            tableBody.innerHTML = '';
+            matches.forEach((match, index) => {
+                const row = `
+                    <tr>
+                        <td>${match.date}</td>
+                        <td>${match.homeTeam}</td>
+                        <td>${match.awayTeam}</td>
+                        <td>${match.time}</td>
+                        <td><button class="delete" onclick="deleteMatch(${index})">Sil</button></td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+        }
+
+        // Maçı sil
+        function deleteMatch(index) {
+            matches.splice(index, 1);
+            updateTable();
+            saveMatchesToLocalStorage();
+        }
+
+        // Tüm maçları temizle
+        function clearAllMatches() {
+            if (confirm("Tüm maçları silmek istediğinize emin misiniz?")) {
+                matches = [];
+                updateTable();
+                saveMatchesToLocalStorage();
+            }
+        }
+
+        // Veriyi localStorage'a kaydet
+        function saveMatchesToLocalStorage() {
+            localStorage.setItem('matches', JSON.stringify(matches));
+        }
+    </script>
+</body>
+</html>
